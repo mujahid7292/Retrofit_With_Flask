@@ -1,9 +1,13 @@
 package com.sand_corporation.rerofit_with_flask;
 
+import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 
+import android.app.Activity;
+import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
+import android.widget.Toast;
 
 import com.sand_corporation.rerofit_with_flask.api.Api;
 import com.sand_corporation.rerofit_with_flask.api.GithubClient;
@@ -20,6 +24,7 @@ import retrofit2.Response;
 public class MainActivity extends AppCompatActivity {
 
     private static final String TAG = "Retrofit_Tutorial";
+    private static final int REQUEST_CODE_FOR_GALLERY_ACCESS = 100;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -30,7 +35,24 @@ public class MainActivity extends AppCompatActivity {
         //getGithubReposForUser();
 
         //2. Send Objects In Request Body.
-        SendObjectsInRequestBody();
+        //SendObjectsInRequestBody();
+
+        //3. Upload Files to Server
+        openFileExplorer();
+    }
+
+    private void openFileExplorer() {
+        Intent intent = new Intent();
+        intent.setType("image/*");
+        //intent.setType("*//*"); //To select any kind of file or attachment
+        intent.setAction(Intent.ACTION_GET_CONTENT);
+        //  To select multiple images from the storage
+        intent.putExtra(Intent.EXTRA_ALLOW_MULTIPLE, true);
+        startActivityForResult(intent, REQUEST_CODE_FOR_GALLERY_ACCESS);
+    }
+
+    private void uploadFilesToServer(Intent data) {
+
     }
 
     private void SendObjectsInRequestBody() {
@@ -87,4 +109,16 @@ public class MainActivity extends AppCompatActivity {
             }
         });
     }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        Log.i(TAG, "requestCode: " + requestCode + "\n" +
+                "resultCode: " + resultCode);
+        if (requestCode == REQUEST_CODE_FOR_GALLERY_ACCESS && resultCode == Activity.RESULT_OK) {
+            Toast.makeText(this, "Image Received", Toast.LENGTH_SHORT).show();
+            uploadFilesToServer(data);
+        }
+    }
+
 }
