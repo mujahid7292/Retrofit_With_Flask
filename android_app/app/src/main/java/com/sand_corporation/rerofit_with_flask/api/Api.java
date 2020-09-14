@@ -19,7 +19,7 @@ public interface Api {
     @Multipart
     @POST("/api/upload-single-file")
     Call<ResponseBody> uploadSingleFile(
-            @Part("description") RequestBody description,
+            @Part("File[]") RequestBody description,
             @Part MultipartBody.Part file
     );
 }

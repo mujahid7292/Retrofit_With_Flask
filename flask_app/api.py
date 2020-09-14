@@ -5,6 +5,10 @@ import os
 app = Flask(__name__)
 app.config['UPLOAD_DIRECTORY'] = '/media/mujahid7292/Data/Retrofit_With_Flask/flask_app/uploaded_files'
 
+@app.route("/")
+def index():
+    return 'Index'
+
 # 2. Send Objects In Request Body.
 @app.route('/api/SendObjectsInRequestBody', methods=['POST'])
 def sendObjectsInRequestBody():
