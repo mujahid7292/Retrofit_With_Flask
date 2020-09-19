@@ -7,9 +7,9 @@ import com.sand_corporation.rerofit_with_flask.api.RetrofitClient;
 public class Common {
     public static String token="N/A";
 
-    //public static final String apiBaseUrl = "http://10.0.2.2:5000";
+    public static final String apiBaseUrl = "http://10.0.2.2:5000";
     // To get the computer ip in ubuntu type `ip a` in the terminal
-    public static final String apiBaseUrl = "http://192.168.70.61:5000";
+    //public static final String apiBaseUrl = "http://192.168.70.61:5000";
     public static Api getApi(){
         return RetrofitClient.getClient(apiBaseUrl).create(Api.class);
     }

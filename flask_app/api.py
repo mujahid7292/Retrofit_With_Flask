@@ -66,6 +66,44 @@ def save_file(file):
 
 @app.route("/api/upload-single-file", methods=['POST'])
 def uploadSingleFile():
+    description = request.form.get("Description")
+    print(f"Description: {description}")
+    uploaded_files = request.files.getlist("file[]")
+    #print(uploaded_files)
+    for file in uploaded_files:
+        #print(file)
+        if file and allowed_file(file.filename):
+            file_dir = save_file(file)
+            print(file_dir)
+        else:
+            return jsonify({"message": "Invalid file extension."})
+    return jsonify({"message":"File saved to server."})
+
+# 4. Passing Multiple Parts Along a File with @PartMap
+
+@app.route("/api/upload-single-file-with-multi-parts", methods=['POST'])
+def uploadSingleFileWithMultiParts():
+    pythonDictionary = request.form
+    print(f"Type: {pythonDictionary}")
+    for k, v in pythonDictionary.items():
+            print(f"Key: {k} | Value: {v}")
+    uploaded_files = request.files.getlist("file[]")
+    #print(uploaded_files)
+    for file in uploaded_files:
+        #print(file)
+        if file and allowed_file(file.filename):
+            file_dir = save_file(file)
+            print(file_dir)
+        else:
+            return jsonify({"message": "Invalid file extension."})
+    return jsonify({"message":"File saved to server."})
+
+@app.route("/api/upload-single-file-with-part-map", methods=['POST'])
+def uploadSingleFileWithPartMap():
+    pythonDictionary = request.form
+    print(f"Type: {pythonDictionary}")
+    for k, v in pythonDictionary.items():
+            print(f"Key: {k} | Value: {v}")
     uploaded_files = request.files.getlist("file[]")
     #print(uploaded_files)
     for file in uploaded_files:

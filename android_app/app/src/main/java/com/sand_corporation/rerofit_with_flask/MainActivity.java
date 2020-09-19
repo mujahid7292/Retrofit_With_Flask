@@ -2,18 +2,16 @@ package com.sand_corporation.rerofit_with_flask;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 
 import android.Manifest;
 import android.app.Activity;
+import android.content.ClipData;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
-import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
@@ -31,7 +29,9 @@ import com.sand_corporation.rerofit_with_flask.utils.FileUtils;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 
 import okhttp3.MediaType;
@@ -45,7 +45,8 @@ import retrofit2.Response;
 public class MainActivity extends AppCompatActivity {
 
     private static final String TAG = "Retrofit_Tutorial";
-    private static final int REQUEST_CODE_FOR_GALLERY_ACCESS = 100;
+    private static final int REQUEST_CODE_FOR_PICKING_SINGLE_IMAGE = 100;
+    private static final int REQUEST_CODE_FOR_PICKING_MULTIPLE_IMAGES = 200;
     private ImageView img;
 
     @Override
@@ -64,16 +65,140 @@ public class MainActivity extends AppCompatActivity {
         //SendObjectsInRequestBody();
 
         //3. Upload Files to Server
-        getSingleImageFromFileExplorer();
+        //getSingleImageFromFileExplorer();
+
+        //4. Passing Multiple Parts Along a File with @PartMap
+        //getSingleImageFromFileExplorer();
+
+        //5. Upload Multiple Files to Server.
+        getMultipleImageFromFileExplorer();
+    }
+
+    private void getMultipleImageFromFileExplorer() {
+        Intent intent = new Intent();
+        // Show only images, no videos or anything else.
+        intent.setType("image/*");
+        intent.setAction(Intent.ACTION_GET_CONTENT);
+        intent.putExtra(Intent.EXTRA_ALLOW_MULTIPLE,true);
+        // Always shows the chooser. (If there is multiple
+        // options available)
+        startActivityForResult(
+                Intent.createChooser(intent, "Select Picture"),
+                REQUEST_CODE_FOR_PICKING_MULTIPLE_IMAGES
+        );
     }
 
     private void getSingleImageFromFileExplorer() {
         Intent intent = new Intent();
         intent.setType("image/*");
         intent.setAction(Intent.ACTION_GET_CONTENT);
-        startActivityForResult(intent, REQUEST_CODE_FOR_GALLERY_ACCESS);
+        startActivityForResult(intent, REQUEST_CODE_FOR_PICKING_SINGLE_IMAGE);
     }
 
+    //5. Upload Multiple Files to Server.
+    private void uploadMultipleFiles(Intent data){
+        ClipData clipData = data.getClipData();
+        ArrayList<Uri> fileUris = new ArrayList<>();
+        
+    }
+
+    //4. Passing Multiple Parts Along a File with @PartMap
+    private void uploadSingleFileWithMultiParts(Intent data){
+        if (data != null){
+            Uri selectedFile = data.getData();
+            Api api = Common.getApi();
+            Call<ResponseBody>call = api.uploadSingleFileWithMultiParts(
+                    createPartFromString("This is description"),
+                    createPartFromString("Dhaka"),
+                    createPartFromString("Saifullah Al Mujahid"),
+                    createPartFromString("2020"),
+                    prepareFilePart("file[]", selectedFile)
+            );
+            call.enqueue(new Callback<ResponseBody>() {
+                @Override
+                public void onResponse(Call<ResponseBody> call, Response<ResponseBody> response) {
+                    if (response.isSuccessful()){
+                        Log.i(TAG,"Response is Successful");
+                        Toast.makeText(MainActivity.this, "Image Upload Successful.", Toast.LENGTH_SHORT).show();
+                    }else {
+                        Log.i(TAG,"Response Failed");
+                        Toast.makeText(MainActivity.this, "Image Upload Failed.", Toast.LENGTH_SHORT).show();
+                    }
+                }
+
+                @Override
+                public void onFailure(Call<ResponseBody> call, Throwable t) {
+                    Log.i(TAG,"Error: " + t.getMessage());
+                }
+            });
+        }
+    }
+
+    private void uploadSingleFileWithPartMap(Intent data){
+        if (data != null){
+            Uri selectedFile = data.getData();
+
+            Map<String, RequestBody> map = new HashMap<>();
+            map.put("Platform", createPartFromString("Android"));
+            map.put("Country", createPartFromString("Bangladesh"));
+            map.put("Time", createPartFromString("5:19 pm"));
+
+            Api api = Common.getApi();
+            Call<ResponseBody> call = api.uploadSingleFileWithPartMap(
+                    map,
+                    prepareFilePart("file[]", selectedFile)
+            );
+            call.enqueue(new Callback<ResponseBody>() {
+                @Override
+                public void onResponse(Call<ResponseBody> call, Response<ResponseBody> response) {
+                    if (response.isSuccessful()){
+                        Log.i(TAG,"Response is Successful");
+                        Toast.makeText(MainActivity.this, "Image Upload Successful.", Toast.LENGTH_SHORT).show();
+                    }else {
+                        Log.i(TAG,"Response Failed");
+                        Toast.makeText(MainActivity.this, "Image Upload Failed.", Toast.LENGTH_SHORT).show();
+                    }
+                }
+
+                @Override
+                public void onFailure(Call<ResponseBody> call, Throwable t) {
+                    Log.i(TAG,"Error: " + t.getMessage());
+                }
+            });
+        }
+    }
+
+    // Helper method
+    @NonNull
+    private RequestBody createPartFromString(String str){
+        return RequestBody.create(
+                okhttp3.MultipartBody.FORM,
+                str
+        );
+    }
+
+    @NonNull
+    private MultipartBody.Part prepareFilePart(String partName, Uri fileUri){
+        // https://github.com/iPaulPro/aFileChooser/blob/master/aFileChooser/src/com/ipaulpro/afilechooser/utils/FileUtils.java
+        // use the FileUtils to get the actual file by uri
+        File file = FileUtils.getFile(this, fileUri);
+
+        // Create RequestBody instances from file.
+        RequestBody requestFile = RequestBody.create(
+                MediaType.parse(getContentResolver().getType(fileUri)),
+                file
+        );
+
+        // MultipartBody.Part is used to send also
+        // the actual file name.
+        return MultipartBody.Part.createFormData(
+                partName,
+                file.getName(),
+                requestFile
+        );
+    }
+
+    //3. Upload Files to Server
     private void uploadFilesToServer(Intent data) {
         if(data != null) {
             Log.i(TAG, "Image Data Is Not NULL");
@@ -189,9 +314,19 @@ public class MainActivity extends AppCompatActivity {
         super.onActivityResult(requestCode, resultCode, data);
         Log.i(TAG, "requestCode: " + requestCode + "\n" +
                 "resultCode: " + resultCode);
-        if (requestCode == REQUEST_CODE_FOR_GALLERY_ACCESS && resultCode == Activity.RESULT_OK) {
+        if (requestCode == REQUEST_CODE_FOR_PICKING_SINGLE_IMAGE
+                && resultCode == Activity.RESULT_OK) {
             Toast.makeText(this, "Image Received", Toast.LENGTH_SHORT).show();
-            uploadFilesToServer(data);
+            //3. Upload Files to Server
+            //uploadFilesToServer(data);
+            //4. Passing Multiple Parts Along a File with @PartMap
+            //uploadSingleFileWithMultiParts(data);
+            //uploadSingleFileWithPartMap(data);
+        }else if(requestCode == REQUEST_CODE_FOR_PICKING_MULTIPLE_IMAGES
+                && resultCode == Activity.RESULT_OK
+                && data != null){
+            //5. Upload Multiple Files to Server.
+            uploadMultipleFiles(data);
         }else {
             Log.i(TAG, "onActivityResult Failed");
         }
