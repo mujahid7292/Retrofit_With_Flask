@@ -99,7 +99,40 @@ public class MainActivity extends AppCompatActivity {
     private void uploadMultipleFiles(Intent data){
         ClipData clipData = data.getClipData();
         ArrayList<Uri> fileUris = new ArrayList<>();
-        
+        for(int i = 0; i < clipData.getItemCount(); i++){
+            ClipData.Item item = clipData.getItemAt(i);
+            Uri uri = item.getUri();
+            fileUris.add(uri);
+        }
+
+        MultipartBody.Part file1 = prepareFilePart("file[]", fileUris.get(0));
+        MultipartBody.Part file2 = prepareFilePart("file[]", fileUris.get(1));
+
+        Api api = Common.getApi();
+        Call<ResponseBody> call = api.uploadMultipleFiles(
+                createPartFromString("This is description"),
+                file1,
+                file2
+        );
+
+        call.enqueue(new Callback<ResponseBody>() {
+            @Override
+            public void onResponse(Call<ResponseBody> call, Response<ResponseBody> response) {
+                if (response.isSuccessful()){
+                    Log.i(TAG,"Response is Successful");
+                    Toast.makeText(MainActivity.this, "Images Upload Successful.", Toast.LENGTH_SHORT).show();
+                }else {
+                    Log.i(TAG,"Response Failed");
+                    Toast.makeText(MainActivity.this, "Images Upload Failed.", Toast.LENGTH_SHORT).show();
+                }
+            }
+
+            @Override
+            public void onFailure(Call<ResponseBody> call, Throwable t) {
+                Log.i(TAG,"Error: " + t.getMessage());
+                Toast.makeText(MainActivity.this, "Error: " + t.getMessage(), Toast.LENGTH_LONG).show();
+            }
+        });
     }
 
     //4. Passing Multiple Parts Along a File with @PartMap
