@@ -134,5 +134,32 @@ def uploadMultipleFiles():
             return jsonify({"message": "Invalid file extension."})
     return jsonify({"message":"File saved to server."})
 
+@app.route("/api/upload-dynamic-amount-of-files", methods=['POST'])
+def uploadDynamicAmountOfFiles():
+    pythonDictionary = request.form
+    print(f"Type: {pythonDictionary}")
+    for k, v in pythonDictionary.items():
+            print(f"Key: {k} | Value: {v}")
+    uploaded_files = request.files.getlist("file[]")
+    #print(uploaded_files)
+    for file in uploaded_files:
+        #print(file)
+        if file and allowed_file(file.filename):
+            file_dir = save_file(file)
+            print(file_dir)
+        else:
+            return jsonify({"message": "Invalid file extension."})
+    return jsonify({"message":"File saved to server."})
+
+# 6. Custom Request Headers
+@app.route("/api/custom-request-headers", methods=['POST'])
+def customRequestHeaders():
+    headers = request.headers
+    #print(f"Headers: \n{headers}")
+    for k, v in headers.items():
+            print(f"Key: {k} | Value: {v}")
+
+    return jsonify({"message":"Custom Headers Received."})
+
 if __name__ == '__main__':
     app.run(debug=True)

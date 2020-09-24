@@ -2,6 +2,7 @@ package com.sand_corporation.rerofit_with_flask.api;
 
 import com.sand_corporation.rerofit_with_flask.api.model.User;
 
+import java.util.List;
 import java.util.Map;
 
 import okhttp3.MultipartBody;
@@ -9,10 +10,14 @@ import okhttp3.RequestBody;
 import okhttp3.ResponseBody;
 import retrofit2.Call;
 import retrofit2.http.Body;
+import retrofit2.http.GET;
+import retrofit2.http.Header;
+import retrofit2.http.Headers;
 import retrofit2.http.Multipart;
 import retrofit2.http.POST;
 import retrofit2.http.Part;
 import retrofit2.http.PartMap;
+import retrofit2.http.Url;
 
 public interface Api {
 
@@ -52,5 +57,43 @@ public interface Api {
             @Part("Description") RequestBody description,
             @Part MultipartBody.Part file1,
             @Part MultipartBody.Part file2
+    );
+
+    @Multipart
+    @POST("api/upload-dynamic-amount-of-files")
+    Call<ResponseBody> uploadDynamicAmountOfFiles(
+            @Part("Description") RequestBody description,
+            @Part List<MultipartBody.Part> files
+    );
+
+    //6. Custom Request Headers
+
+//    @Headers("Cache-Control: max-age-3600")
+//    @POST("/api/custom-request-headers")
+//    Call<User> customRequestHeaders(@Body User user);
+
+    @Headers({
+            "Cache-Control: max-age-3600",
+            "User-Agent: Android"
+    })
+    @POST("/api/custom-request-headers")
+    Call<User> customRequestHeaders(@Body User user);
+
+
+    @Headers({
+            "Cache-Control: max-age-3600",
+            "User-Agent: Android"
+    })
+    @POST("/api/custom-request-headers")
+    Call<User> customRequestHeaders(
+            @Header("UserName") String userName,
+            @Header("Cache-Control") String cache, //Same Headers
+            @Body User user
+    );
+
+    //7. Dynamic Urls for Requests
+    @GET
+    Call<ResponseBody> getProfilePic(
+            @Url String url
     );
 }

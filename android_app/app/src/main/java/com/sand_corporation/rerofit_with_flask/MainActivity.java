@@ -71,7 +71,106 @@ public class MainActivity extends AppCompatActivity {
         //getSingleImageFromFileExplorer();
 
         //5. Upload Multiple Files to Server.
-        getMultipleImageFromFileExplorer();
+        //getMultipleImageFromFileExplorer();
+
+        //6. Custom Request Headers
+        //customRequestHeaders();
+
+        //7. Dynamic Urls for Requests
+        //dynamicUrlsForRequests();
+    }
+
+    //7. Dynamic Urls for Requests
+    private void dynamicUrlsForRequests() {
+        // My Github profile pic url.
+        String profile_pic_url = "https://avatars3.githubusercontent.com/u/42904620?s=400&u=37ebcc83bfac93b312711469519c0043a2cceab6&v=4";
+        Api api = Common.getApi();
+        Call<ResponseBody> call = api.getProfilePic(
+                profile_pic_url
+        );
+        call.enqueue(new Callback<ResponseBody>() {
+            @Override
+            public void onResponse(Call<ResponseBody> call, Response<ResponseBody> response) {
+                if (response.isSuccessful()){
+                    Log.i(TAG,"Received Profile Pic.");
+                    Toast.makeText(MainActivity.this,
+                            "Received Profile Pic.",
+                            Toast.LENGTH_LONG)
+                            .show();
+                }else {
+                    Log.i(TAG,"Response Failed");
+                    Toast.makeText(MainActivity.this,
+                            "Response Failed",
+                            Toast.LENGTH_LONG)
+                            .show();
+                }
+            }
+
+            @Override
+            public void onFailure(Call<ResponseBody> call, Throwable t) {
+                Log.i(TAG,"Error: " + t.getMessage());
+                Toast.makeText(MainActivity.this,
+                        "Error: " + t.getMessage(),
+                        Toast.LENGTH_LONG).show();
+            }
+        });
+    }
+
+
+    //6. Custom Request Headers
+    private void customRequestHeaders() {
+        // To be sent json body
+//        {
+//            "name": "Saifullah Al Mujahid",
+//             "email": "mujahid7292@gmail.com",
+//             "age":32,
+//             "topics": [
+//                 "android",
+//                 "python"
+//             ]
+//        }
+
+        String name = "Saifullah Al Mujahid";
+        String email = "mujahid7292@gmail.com";
+        int age = 32;
+        String topics[] = "android,python".split(",");
+
+        final User user = new User(name, email, age, topics);
+
+        Api api = Common.getApi();
+        //Call<User> call = api.customRequestHeaders(user);
+        Call<User> call = api.customRequestHeaders(
+                "mujahid7292",
+                "max-age-4800",
+                user
+        );
+        call.enqueue(new Callback<User>() {
+            @Override
+            public void onResponse(Call<User> call, Response<User> response) {
+                if (response.isSuccessful()){
+                    User user1 = response.body();
+                    Log.i(TAG,"User Id: " + user1.getId());
+                    Toast.makeText(MainActivity.this,
+                            "User Id: " + user1.getId(),
+                            Toast.LENGTH_LONG)
+                            .show();
+                }else {
+                    Log.i(TAG,"Response Failed");
+                    Toast.makeText(MainActivity.this,
+                            "Response Failed",
+                            Toast.LENGTH_LONG)
+                            .show();
+                }
+            }
+
+            @Override
+            public void onFailure(Call<User> call, Throwable t) {
+                Log.i(TAG,"Error: " + t.getMessage());
+                Toast.makeText(MainActivity.this,
+                        "Error: " + t.getMessage(),
+                        Toast.LENGTH_LONG).show();
+            }
+        });
     }
 
     private void getMultipleImageFromFileExplorer() {
@@ -113,6 +212,50 @@ public class MainActivity extends AppCompatActivity {
                 createPartFromString("This is description"),
                 file1,
                 file2
+        );
+
+        call.enqueue(new Callback<ResponseBody>() {
+            @Override
+            public void onResponse(Call<ResponseBody> call, Response<ResponseBody> response) {
+                if (response.isSuccessful()){
+                    Log.i(TAG,"Response is Successful");
+                    Toast.makeText(MainActivity.this, "Images Upload Successful.", Toast.LENGTH_SHORT).show();
+                }else {
+                    Log.i(TAG,"Response Failed");
+                    Toast.makeText(MainActivity.this, "Images Upload Failed.", Toast.LENGTH_SHORT).show();
+                }
+            }
+
+            @Override
+            public void onFailure(Call<ResponseBody> call, Throwable t) {
+                Log.i(TAG,"Error: " + t.getMessage());
+                Toast.makeText(MainActivity.this, "Error: " + t.getMessage(), Toast.LENGTH_LONG).show();
+            }
+        });
+    }
+
+    private void uploadDynamicAmountOfFiles(Intent data){
+        ClipData clipData = data.getClipData();
+        ArrayList<Uri> fileUris = new ArrayList<>();
+        for(int i = 0; i < clipData.getItemCount(); i++){
+            ClipData.Item item = clipData.getItemAt(i);
+            Uri uri = item.getUri();
+            fileUris.add(uri);
+        }
+
+        List<MultipartBody.Part> files = new ArrayList<>();
+
+        for(int i = 0; i < fileUris.size(); i++){
+            files.add(prepareFilePart(
+                    "file[]",
+                    fileUris.get(i)
+            ));
+        }
+
+        Api api = Common.getApi();
+        Call<ResponseBody> call = api.uploadDynamicAmountOfFiles(
+                createPartFromString("This is description."),
+                files
         );
 
         call.enqueue(new Callback<ResponseBody>() {
@@ -359,7 +502,8 @@ public class MainActivity extends AppCompatActivity {
                 && resultCode == Activity.RESULT_OK
                 && data != null){
             //5. Upload Multiple Files to Server.
-            uploadMultipleFiles(data);
+            //uploadMultipleFiles(data);
+            uploadDynamicAmountOfFiles(data);
         }else {
             Log.i(TAG, "onActivityResult Failed");
         }
