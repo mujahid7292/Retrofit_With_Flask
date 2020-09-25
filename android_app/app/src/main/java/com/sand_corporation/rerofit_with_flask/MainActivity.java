@@ -15,6 +15,7 @@ import android.content.pm.PackageManager;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.Environment;
 import android.util.Log;
 import android.widget.ImageView;
 import android.widget.Toast;
@@ -28,6 +29,10 @@ import com.sand_corporation.rerofit_with_flask.global.Common;
 import com.sand_corporation.rerofit_with_flask.utils.FileUtils;
 
 import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -78,6 +83,144 @@ public class MainActivity extends AppCompatActivity {
 
         //7. Dynamic Urls for Requests
         //dynamicUrlsForRequests();
+
+        // 8. Download Files from Server
+        //downloadFileFromServer1();
+        downloadFileFromServer2();
+    }
+
+
+    // 8. Download Files from Server
+    private boolean writeResponseBodyToDisk(ResponseBody body, String fileName) {
+
+        try {
+            // todo change the file location/name according to your needs
+            File futureStudioIconFile = new File(
+                    Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS),
+                    fileName
+            );
+
+            InputStream inputStream = null;
+            OutputStream outputStream = null;
+
+            try {
+                byte[] fileReader = new byte[4096];
+
+                long fileSize = body.contentLength();
+                long fileSizeDownloaded = 0;
+
+                inputStream = body.byteStream();
+                outputStream = new FileOutputStream(futureStudioIconFile);
+
+                while (true) {
+                    int read = inputStream.read(fileReader);
+
+                    if (read == -1) {
+                        break;
+                    }
+
+                    outputStream.write(fileReader, 0, read);
+
+                    fileSizeDownloaded += read;
+
+                    Log.i(TAG, "file download: " + fileSizeDownloaded + " of " + fileSize);
+                }
+
+                outputStream.flush();
+
+                return true;
+            } catch (IOException e) {
+                return false;
+            } finally {
+                if (inputStream != null) {
+                    inputStream.close();
+                }
+
+                if (outputStream != null) {
+                    outputStream.close();
+                }
+            }
+        } catch (IOException e) {
+            return false;
+        }
+    }
+
+    private void downloadFileFromServer1() {
+        final String fileName = "lena.jpg";
+
+        Api api = Common.getApi();
+        Call<ResponseBody> call = api.getFile(
+                fileName
+        );
+
+        call.enqueue(new Callback<ResponseBody>() {
+            @Override
+            public void onResponse(Call<ResponseBody> call, Response<ResponseBody> response) {
+                if (response.isSuccessful()){
+                    Log.i(TAG,"Received File.");
+                    Toast.makeText(MainActivity.this,
+                            "Received File.",
+                            Toast.LENGTH_LONG)
+                            .show();
+                    boolean writtenToDisk = writeResponseBodyToDisk(response.body(),fileName);
+
+                    Log.i(TAG, "file download was a success? " + writtenToDisk);
+                }else {
+                    Log.i(TAG,"Response Failed");
+                    Toast.makeText(MainActivity.this,
+                            "Response Failed",
+                            Toast.LENGTH_LONG)
+                            .show();
+                }
+            }
+
+            @Override
+            public void onFailure(Call<ResponseBody> call, Throwable t) {
+                Log.i(TAG,"Error: " + t.getMessage());
+                Toast.makeText(MainActivity.this,
+                        "Error: " + t.getMessage(),
+                        Toast.LENGTH_LONG).show();
+            }
+        });
+    }
+
+    private void downloadFileFromServer2() {
+        final String fileName = "lena.jpg";
+
+        Api api = Common.getApi();
+        Call<ResponseBody> call = api.getFileStream(
+                fileName
+        );
+
+        call.enqueue(new Callback<ResponseBody>() {
+            @Override
+            public void onResponse(Call<ResponseBody> call, Response<ResponseBody> response) {
+                if (response.isSuccessful()){
+                    Log.i(TAG,"Received File.");
+                    Toast.makeText(MainActivity.this,
+                            "Received File.",
+                            Toast.LENGTH_LONG)
+                            .show();
+                    boolean writtenToDisk = writeResponseBodyToDisk(response.body(),fileName);
+
+                    Log.i(TAG, "file download was a success? " + writtenToDisk);
+                }else {
+                    Log.i(TAG,"Response Failed");
+                    Toast.makeText(MainActivity.this,
+                            "Response Failed",
+                            Toast.LENGTH_LONG)
+                            .show();
+                }
+            }
+
+            @Override
+            public void onFailure(Call<ResponseBody> call, Throwable t) {
+                Log.i(TAG,"Error: " + t.getMessage());
+                Toast.makeText(MainActivity.this,
+                        "Error: " + t.getMessage(),
+                        Toast.LENGTH_LONG).show();
+            }
+        });
     }
 
     //7. Dynamic Urls for Requests
@@ -97,6 +240,7 @@ public class MainActivity extends AppCompatActivity {
                             "Received Profile Pic.",
                             Toast.LENGTH_LONG)
                             .show();
+                    writeResponseBodyToDisk(response.body(),"Github Profile.jpg");
                 }else {
                     Log.i(TAG,"Response Failed");
                     Toast.makeText(MainActivity.this,

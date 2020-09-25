@@ -1,9 +1,11 @@
-from flask import Flask, jsonify, request
+from flask import (Flask, jsonify, request, send_from_directory,
+            abort)
 import secrets
 import os
 
 app = Flask(__name__)
 app.config['UPLOAD_DIRECTORY'] = '/media/mujahid7292/Data/Retrofit_With_Flask/flask_app/uploaded_files'
+app.config['DOWNLOAD_DIRECTORY'] = '/media/mujahid7292/Data/Retrofit_With_Flask/flask_app/download_files'
 
 @app.route("/")
 def index():
@@ -160,6 +162,19 @@ def customRequestHeaders():
             print(f"Key: {k} | Value: {v}")
 
     return jsonify({"message":"Custom Headers Received."})
+
+# 8. Download Files from Server.
+@app.route("/api/get-file/<string:file_name>")
+def downloadFile(file_name):
+    try:
+        return send_from_directory(
+            directory=app.config['DOWNLOAD_DIRECTORY'],
+            filename=file_name,
+            as_attachment=False
+        )
+    except FileNotFoundError:
+        print("File Not Found")
+        abort(404)
 
 if __name__ == '__main__':
     app.run(debug=True)

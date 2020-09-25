@@ -17,6 +17,8 @@ import retrofit2.http.Multipart;
 import retrofit2.http.POST;
 import retrofit2.http.Part;
 import retrofit2.http.PartMap;
+import retrofit2.http.Path;
+import retrofit2.http.Streaming;
 import retrofit2.http.Url;
 
 public interface Api {
@@ -95,5 +97,17 @@ public interface Api {
     @GET
     Call<ResponseBody> getProfilePic(
             @Url String url
+    );
+
+    // 8. Download Files from Server
+    @GET("/api/get-file/{file_name}")
+    Call<ResponseBody> getFile(
+            @Path("file_name") String file_name
+    );
+
+    @Streaming
+    @GET("/api/get-file/{file_name}")
+    Call<ResponseBody> getFileStream(
+            @Path("file_name") String file_name
     );
 }
