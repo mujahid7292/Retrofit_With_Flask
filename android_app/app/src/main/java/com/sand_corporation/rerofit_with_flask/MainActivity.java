@@ -25,6 +25,8 @@ import com.sand_corporation.rerofit_with_flask.api.Api;
 import com.sand_corporation.rerofit_with_flask.api.GithubClient;
 import com.sand_corporation.rerofit_with_flask.api.model.GithubRepo;
 import com.sand_corporation.rerofit_with_flask.api.model.User;
+import com.sand_corporation.rerofit_with_flask.api.utils.APIError;
+import com.sand_corporation.rerofit_with_flask.api.utils.ErrorUtils;
 import com.sand_corporation.rerofit_with_flask.global.Common;
 import com.sand_corporation.rerofit_with_flask.utils.FileUtils;
 
@@ -86,7 +88,48 @@ public class MainActivity extends AppCompatActivity {
 
         // 8. Download Files from Server
         //downloadFileFromServer1();
-        downloadFileFromServer2();
+        //downloadFileFromServer2();
+
+        // 9. Error Handling.
+        errorHandlingInRetrofit();
+    }
+
+    // 9. Error Handling.
+    private void errorHandlingInRetrofit() {
+        Api api = Common.getApi();
+        Call<ResponseBody>call = api.getSpecificError(
+                403
+        );
+
+        call.enqueue(new Callback<ResponseBody>() {
+            @Override
+            public void onResponse(Call<ResponseBody> call, Response<ResponseBody> response) {
+                if (response.isSuccessful()){
+                    Log.i(TAG,"Response Is Successful.");
+                    Toast.makeText(MainActivity.this,
+                            "Response Is Successful.",
+                            Toast.LENGTH_LONG)
+                            .show();
+
+                }else {
+                    APIError error = ErrorUtils.parseError(response);
+
+                    Log.i(TAG,"Response Failed: " + error.getMessage());
+                    Toast.makeText(MainActivity.this,
+                            "Response Failed: " + error.getMessage(),
+                            Toast.LENGTH_LONG)
+                            .show();
+                }
+            }
+
+            @Override
+            public void onFailure(Call<ResponseBody> call, Throwable t) {
+                Log.i(TAG,"Error: " + t.getMessage());
+                Toast.makeText(MainActivity.this,
+                        "Error: " + t.getMessage(),
+                        Toast.LENGTH_LONG).show();
+            }
+        });
     }
 
 

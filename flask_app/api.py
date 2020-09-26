@@ -176,5 +176,33 @@ def downloadFile(file_name):
         print("File Not Found")
         abort(404)
 
+# 9. Error Handling.
+@app.errorhandler(404)
+def error_404(error):
+    return jsonify({
+        "status_code": 404,
+        "message": "User not found." 
+    }), 404
+
+@app.errorhandler(403)
+def error_403(error):
+    return jsonify({
+        "status_code": 403,
+        "message": "You don't have permission." 
+    }), 403
+
+@app.errorhandler(500)
+def error_500(error):
+    return jsonify({
+        "status_code": 500,
+        "message": "Internal Server Error." 
+    }), 500
+
+@app.route("/api/error_handling/<int:error_code>", methods=['GET', 'POST'])
+def error_handling(error_code):
+    print(f"Error code sent by retrofit: {error_code}")
+    abort(error_code)
+    return "No Error occured."
+
 if __name__ == '__main__':
-    app.run(debug=True)
+    app.run(debug=True, port="0.0.0.0")

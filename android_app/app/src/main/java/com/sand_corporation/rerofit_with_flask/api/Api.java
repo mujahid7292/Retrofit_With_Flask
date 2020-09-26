@@ -110,4 +110,10 @@ public interface Api {
     Call<ResponseBody> getFileStream(
             @Path("file_name") String file_name
     );
+
+    // 9. Error Handling.
+    @GET("/api/error_handling/{error_code}")
+    Call<ResponseBody> getSpecificError(
+            @Path("error_code") int error_code
+    );
 }
