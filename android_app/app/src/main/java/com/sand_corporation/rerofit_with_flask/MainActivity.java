@@ -36,6 +36,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -48,6 +49,9 @@ import okhttp3.ResponseBody;
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
+import retrofit2.Retrofit;
+import retrofit2.converter.gson.GsonConverterFactory;
+import retrofit2.converter.scalars.ScalarsConverterFactory;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -91,7 +95,130 @@ public class MainActivity extends AppCompatActivity {
         //downloadFileFromServer2();
 
         // 9. Error Handling.
-        errorHandlingInRetrofit();
+        //errorHandlingInRetrofit();
+
+        // 10. Send Data Form-Urlencoded
+        //formUrlEncoded();
+
+        // 11. Send Plain Text Request Body
+        sendPlainTextRequestBody();
+
+        // 12.Add Query Parameters to Every Request
+        addQueryParametersToEveryRequest();
+    }
+
+    // 12.Add Query Parameters to Every Request
+    private void addQueryParametersToEveryRequest() {
+
+    }
+
+    // 11. Send Plain Text Request Body
+    private void sendPlainTextRequestBody() {
+        Retrofit retrofit = new Retrofit.Builder()
+                .addConverterFactory(ScalarsConverterFactory.create())
+                //.addConverterFactory(GsonConverterFactory.create())
+                .baseUrl("http://10.0.2.2:5000")
+                .build();
+        Api api = retrofit.create(Api.class);
+
+        // Solution: 1
+//        Call<ResponseBody>call = api.sendPlainTextRequestBody(
+//                "Some Plain Text Message."
+//        );
+
+        // Solution: 2
+        // This solution does not require help of ScalarsConverterFactory
+        RequestBody body = RequestBody.create(
+                MediaType.parse("text/plain"),
+                "Some Plain Text Message"
+        );
+        Call<ResponseBody> call = api.sendPlainTextRequestBody(
+                body
+        );
+
+        call.enqueue(new Callback<ResponseBody>() {
+            @Override
+            public void onResponse(Call<ResponseBody> call, Response<ResponseBody> response) {
+                if (response.isSuccessful()){
+                    Log.i(TAG,"Response Is Successful.");
+                    Toast.makeText(MainActivity.this,
+                            "Response Body: " + response.body().toString(),
+                            Toast.LENGTH_LONG)
+                            .show();
+
+                }else {
+                    APIError error = ErrorUtils.parseError(response);
+
+                    Log.i(TAG,"Response Failed: " + error.getMessage());
+                    Toast.makeText(MainActivity.this,
+                            "Response Failed: " + error.getMessage(),
+                            Toast.LENGTH_LONG)
+                            .show();
+                }
+            }
+
+            @Override
+            public void onFailure(Call<ResponseBody> call, Throwable t) {
+                Log.i(TAG,"Error: " + t.getMessage());
+                Toast.makeText(MainActivity.this,
+                        "Error: " + t.getMessage(),
+                        Toast.LENGTH_LONG).show();
+            }
+        });
+    }
+
+    // 10. Send Data Form-Urlencoded
+    private void formUrlEncoded() {
+        String topics = "Flask,Retrofit,Node.js";
+        Api api = Common.getApi();
+//        Call<ResponseBody> call = api.formUrlEncoded(
+//                "Mohammad Ullah",
+//                "mohammadullah7292@gmail.com",
+//                "password",
+//                "67",
+//                Arrays.asList(topics.split(","))
+//        );
+
+        Map<String, Object> map = new HashMap<>();
+        map.put("full_name","Mohammad Ullah");
+        map.put("username","mohammadullah7292@gmail.com");
+        map.put("password","password");
+        map.put("age","67");
+        map.put("topics",Arrays.asList(topics.split(",")));
+
+        Call<ResponseBody> call = api.formUrlEncoded(
+                map
+        );
+
+        call.enqueue(new Callback<ResponseBody>() {
+            @Override
+            public void onResponse(Call<ResponseBody> call, Response<ResponseBody> response) {
+                if (response.isSuccessful()){
+                    Log.i(TAG,"Response Is Successful.");
+                    Toast.makeText(MainActivity.this,
+                            "Response Body: " + response.body().toString(),
+                            Toast.LENGTH_LONG)
+                            .show();
+
+                }else {
+                    APIError error = ErrorUtils.parseError(response);
+
+                    Log.i(TAG,"Response Failed: " + error.getMessage());
+                    Toast.makeText(MainActivity.this,
+                            "Response Failed: " + error.getMessage(),
+                            Toast.LENGTH_LONG)
+                            .show();
+                }
+            }
+
+            @Override
+            public void onFailure(Call<ResponseBody> call, Throwable t) {
+                Log.i(TAG,"Error: " + t.getMessage());
+                Toast.makeText(MainActivity.this,
+                        "Error: " + t.getMessage(),
+                        Toast.LENGTH_LONG).show();
+            }
+        });
     }
 
     // 9. Error Handling.

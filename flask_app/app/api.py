@@ -1,11 +1,8 @@
-from flask import (Flask, jsonify, request, send_from_directory,
-            abort)
+from app import app
+from flask import (jsonify, request, send_from_directory,
+            abort, render_template)
 import secrets
 import os
-
-app = Flask(__name__)
-app.config['UPLOAD_DIRECTORY'] = '/media/mujahid7292/Data/Retrofit_With_Flask/flask_app/uploaded_files'
-app.config['DOWNLOAD_DIRECTORY'] = '/media/mujahid7292/Data/Retrofit_With_Flask/flask_app/download_files'
 
 @app.route("/")
 def index():
@@ -204,5 +201,32 @@ def error_handling(error_code):
     abort(error_code)
     return "No Error occured."
 
-if __name__ == '__main__':
-    app.run(debug=True, port="0.0.0.0")
+# 10. Send Data Form-Urlencoded
+@app.route("/api/form-url-encoded", methods=['GET','POST'])
+def formUrlEncoded():
+    if request.method == 'POST':
+        data = request.form
+
+        full_name = data.get('full_name', None)
+        username = data.get('username', None)
+        password = data.get('password', None)
+        age = data.get('age', None)
+        topics = data.get('topics', None)
+
+        print(f" full_name: {full_name}\n username: {username}\n \
+password: {password} \n age: {age}\n topics: {topics}")
+        print(f"topics type: {type(topics)}")
+        return jsonify({"message": "Form-UrlEncoded Data Received."})
+    return render_template("form_url_encoded.html")
+
+# 11. Send Plain Text Request Body
+@app.route("/api/plain-text-request-body", methods=['POST'])
+def sendPlainTextRequestBody():
+    print(f"MimeType: {request.mimetype}")
+    print(f"ContentType: {request.content_type}")
+    data = request.data.decode('UTF-8')
+    print(f"Data Type: {type(data)}")
+    print(data)
+    return jsonify({"message": "Plain Text Request Body Received."})
+
+# 12.Add Query Parameters to Every Request

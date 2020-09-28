@@ -10,6 +10,9 @@ import okhttp3.RequestBody;
 import okhttp3.ResponseBody;
 import retrofit2.Call;
 import retrofit2.http.Body;
+import retrofit2.http.Field;
+import retrofit2.http.FieldMap;
+import retrofit2.http.FormUrlEncoded;
 import retrofit2.http.GET;
 import retrofit2.http.Header;
 import retrofit2.http.Headers;
@@ -116,4 +119,35 @@ public interface Api {
     Call<ResponseBody> getSpecificError(
             @Path("error_code") int error_code
     );
+
+    // 10. Send Data Form-Urlencoded
+    @FormUrlEncoded
+    @POST("/api/form-url-encoded")
+    Call<ResponseBody> formUrlEncoded(
+            @Field("full_name") String full_name,
+            @Field("username") String username,
+            @Field("password") String password,
+            @Field("age") String age,
+            @Field(value = "topics", encoded = true) List<String> topics
+    );
+
+    @FormUrlEncoded
+    @POST("/api/form-url-encoded")
+    Call<ResponseBody> formUrlEncoded(
+            @FieldMap Map<String, Object> map
+    );
+
+    // 11. Send Plain Text Request Body
+    @POST("/api/plain-text-request-body")
+    Call<ResponseBody> sendPlainTextRequestBody(
+            @Body String message
+    );
+
+    @POST("/api/plain-text-request-body")
+    Call<ResponseBody> sendPlainTextRequestBody(
+            @Body RequestBody message
+    );
+
+    // 12.Add Query Parameters to Every Request
+    
 }
