@@ -229,4 +229,25 @@ def sendPlainTextRequestBody():
     print(data)
     return jsonify({"message": "Plain Text Request Body Received."})
 
-# 12.Add Query Parameters to Every Request
+# 12.Add Query Parameters to Every Request.
+@app.route("/api/query-parameters")
+def queryParameters():
+    query_params = request.args
+    if query_params:
+        for key, value in query_params.items():
+            print(f"Key: {key} | Value: {value}")
+        serialized = ", ".join(f"Key: {key} | Value: {value}" for key, value in query_params.items())
+        return f"Query Received: {serialized}", 200
+    else:
+        return jsonify({"message": "No Query Parameters Received."})
+
+# 13. Basic Authentication
+@app.route("/api/basic-authentication")
+def basicAuth():
+    auth = request.authorization
+    print(f'Auth: {auth}')
+    if auth:
+        username = auth.username
+        password = auth.password
+        return f"username: {username} | password: {password}"
+    return "Empty Authorization."

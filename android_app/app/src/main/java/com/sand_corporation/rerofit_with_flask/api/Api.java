@@ -21,6 +21,7 @@ import retrofit2.http.POST;
 import retrofit2.http.Part;
 import retrofit2.http.PartMap;
 import retrofit2.http.Path;
+import retrofit2.http.Query;
 import retrofit2.http.Streaming;
 import retrofit2.http.Url;
 
@@ -148,6 +149,24 @@ public interface Api {
             @Body RequestBody message
     );
 
+    // Send Query Parameters
+    @GET("/api/query-parameters")
+    Call<ResponseBody> sendQueryParameters(
+            @Query("api_key") String api_key,
+            @Query("characters") String characters,
+            @Query("order") String order
+    );
+
     // 12.Add Query Parameters to Every Request
-    
+    @GET("/api/query-parameters")
+    Call<ResponseBody> addQueryParametersToEveryRequest(
+            @Query("characters") String characters,
+            @Query("order") String order
+    );
+
+    // 13. Basic Authentication
+    @GET("/api/basic-authentication")
+    Call<ResponseBody> basicAuthentication(
+            @Header("Authorization") String authHeader
+    );
 }

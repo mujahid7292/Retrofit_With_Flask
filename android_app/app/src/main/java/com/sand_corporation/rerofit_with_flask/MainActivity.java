@@ -16,6 +16,7 @@ import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
+import android.util.Base64;
 import android.util.Log;
 import android.widget.ImageView;
 import android.widget.Toast;
@@ -42,8 +43,12 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
+import okhttp3.HttpUrl;
+import okhttp3.Interceptor;
 import okhttp3.MediaType;
 import okhttp3.MultipartBody;
+import okhttp3.OkHttpClient;
+import okhttp3.Request;
 import okhttp3.RequestBody;
 import okhttp3.ResponseBody;
 import retrofit2.Call;
@@ -101,15 +106,181 @@ public class MainActivity extends AppCompatActivity {
         //formUrlEncoded();
 
         // 11. Send Plain Text Request Body
-        sendPlainTextRequestBody();
+        //sendPlainTextRequestBody();
+
+        // Send Query Parameters
+        //sendQueryParameters();
 
         // 12.Add Query Parameters to Every Request
-        addQueryParametersToEveryRequest();
+        //addQueryParametersToEveryRequest();
+
+        // 13. Basic Authentication
+        basicAuthentication();
     }
+
+    // 13. Basic Authentication
+    private void basicAuthentication() {
+        String username = "mujahid7292";
+        String password = "password";
+        String base = username + ":" + password;
+
+        String authHeader = "Basic " + Base64.encodeToString(
+                base.getBytes(),
+                Base64.NO_WRAP
+        );
+
+        Api api = Common.getApi();
+        Call<ResponseBody> call = api.basicAuthentication(
+                authHeader
+        );
+
+        call.enqueue(new Callback<ResponseBody>() {
+            @Override
+            public void onResponse(Call<ResponseBody> call, Response<ResponseBody> response) {
+                if (response.isSuccessful()){
+                    Log.i(TAG,"Response Is Successful.");
+                    Toast.makeText(MainActivity.this,
+                            "Response Body: " + response.body().toString(),
+                            Toast.LENGTH_LONG)
+                            .show();
+
+                }else {
+                    APIError error = ErrorUtils.parseError(response);
+
+                    Log.i(TAG,"Response Failed: " + error.getMessage());
+                    Toast.makeText(MainActivity.this,
+                            "Response Failed: " + error.getMessage(),
+                            Toast.LENGTH_LONG)
+                            .show();
+                }
+            }
+
+            @Override
+            public void onFailure(Call<ResponseBody> call, Throwable t) {
+                Log.i(TAG,"Error: " + t.getMessage());
+                Toast.makeText(MainActivity.this,
+                        "Error: " + t.getMessage(),
+                        Toast.LENGTH_LONG).show();
+            }
+        });
+    }
+
 
     // 12.Add Query Parameters to Every Request
     private void addQueryParametersToEveryRequest() {
+        final String api_key = "AxjHkiThdfLLpaswrtMJMJK";
 
+        OkHttpClient okHttpClient = new OkHttpClient.Builder()
+                .addInterceptor(new Interceptor() {
+                    @Override
+                    public okhttp3.Response intercept(Chain chain) throws IOException {
+                        // First save the original request into a variable.
+                        Request original_request = chain.request();
+
+                        // Now save the original URL into a variable.
+                        HttpUrl original_url = original_request.url();
+                        Log.i(TAG, "original_url: " + original_url.toString());
+
+                        // Now we will create new_url by adding query parameters
+                        // to old url.
+                        HttpUrl new_url = original_url
+                                .newBuilder()
+                                .addQueryParameter("api_key", api_key)
+                                .build();
+
+                        // We can not modify the `original_request`, we have to
+                        // create a copy of `original_request`.
+                        Request new_request = original_request
+                                .newBuilder()
+                                .url(new_url) // Pass newly created url.
+                                .build();
+
+                        return chain.proceed(new_request);
+                    }
+                }).build();
+
+        Retrofit retrofit = new Retrofit.Builder()
+                .addConverterFactory(GsonConverterFactory.create())
+                .baseUrl("http://10.0.2.2:5000")
+                .client(okHttpClient)
+                .build();
+
+        Api api = retrofit.create(Api.class);
+        Call<ResponseBody> call = api.addQueryParametersToEveryRequest(
+                "sai",
+                "asc"
+        );
+
+        call.enqueue(new Callback<ResponseBody>() {
+            @Override
+            public void onResponse(Call<ResponseBody> call, Response<ResponseBody> response) {
+                if (response.isSuccessful()){
+                    Log.i(TAG,"Response Is Successful.");
+                    Toast.makeText(MainActivity.this,
+                            "Response Body: " + response.body().toString(),
+                            Toast.LENGTH_LONG)
+                            .show();
+
+                }else {
+                    APIError error = ErrorUtils.parseError(response);
+
+                    Log.i(TAG,"Response Failed: " + error.getMessage());
+                    Toast.makeText(MainActivity.this,
+                            "Response Failed: " + error.getMessage(),
+                            Toast.LENGTH_LONG)
+                            .show();
+                }
+            }
+
+            @Override
+            public void onFailure(Call<ResponseBody> call, Throwable t) {
+                Log.i(TAG,"Error: " + t.getMessage());
+                Toast.makeText(MainActivity.this,
+                        "Error: " + t.getMessage(),
+                        Toast.LENGTH_LONG).show();
+            }
+        });
+
+    }
+
+    // Send Query Parameters
+    private void sendQueryParameters() {
+        Api api = Common.getApi();
+        Call<ResponseBody> call = api.sendQueryParameters(
+                "AxjHkiThdfLLpaswrtMJMJK",
+                "sai",
+                "asc"
+        );
+
+        call.enqueue(new Callback<ResponseBody>() {
+            @Override
+            public void onResponse(Call<ResponseBody> call, Response<ResponseBody> response) {
+                if (response.isSuccessful()){
+                    Log.i(TAG,"Response Is Successful.");
+                    Toast.makeText(MainActivity.this,
+                            "Response Body: " + response.body().toString(),
+                            Toast.LENGTH_LONG)
+                            .show();
+
+                }else {
+                    APIError error = ErrorUtils.parseError(response);
+
+                    Log.i(TAG,"Response Failed: " + error.getMessage());
+                    Toast.makeText(MainActivity.this,
+                            "Response Failed: " + error.getMessage(),
+                            Toast.LENGTH_LONG)
+                            .show();
+                }
+            }
+
+            @Override
+            public void onFailure(Call<ResponseBody> call, Throwable t) {
+                Log.i(TAG,"Error: " + t.getMessage());
+                Toast.makeText(MainActivity.this,
+                        "Error: " + t.getMessage(),
+                        Toast.LENGTH_LONG).show();
+            }
+        });
     }
 
     // 11. Send Plain Text Request Body

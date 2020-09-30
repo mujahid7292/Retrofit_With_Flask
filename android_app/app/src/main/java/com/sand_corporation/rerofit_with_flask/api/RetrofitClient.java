@@ -46,7 +46,7 @@ public class RetrofitClient {
                         .header("Header_1","1")
                         .header("Header_2","2")
                         .header("Header_3","3")
-                        .header("Authorization",Common.token == null? "N/A":Common.token)
+                        //.header("Authorization",Common.token == null? "N/A":Common.token)
                         .addHeader("Cache-Control","max-age-2400");
                 return chain.proceed(newRequest.build());
             }
