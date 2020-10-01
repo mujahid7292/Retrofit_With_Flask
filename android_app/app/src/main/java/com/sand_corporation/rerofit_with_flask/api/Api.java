@@ -166,7 +166,13 @@ public interface Api {
 
     // 13. Basic Authentication
     @GET("/api/basic-authentication")
-    Call<ResponseBody> basicAuthentication(
+    Call<User> basicAuthentication(
             @Header("Authorization") String authHeader
+    );
+
+    // 14. Token Authentication.
+    @GET("/api/token-authentication")
+    Call<ResponseBody> tokenAuthentication(
+            @Header("x-access-token") String token
     );
 }

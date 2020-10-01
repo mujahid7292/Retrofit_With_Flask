@@ -115,23 +115,19 @@ public class MainActivity extends AppCompatActivity {
         //addQueryParametersToEveryRequest();
 
         // 13. Basic Authentication
-        basicAuthentication();
+        //basicAuthentication();
+
+        // 14. Token Authentication.
+        tokenAuthentication();
     }
 
-    // 13. Basic Authentication
-    private void basicAuthentication() {
-        String username = "mujahid7292";
-        String password = "password";
-        String base = username + ":" + password;
-
-        String authHeader = "Basic " + Base64.encodeToString(
-                base.getBytes(),
-                Base64.NO_WRAP
-        );
+    // 14. Token Authentication.
+    private void tokenAuthentication() {
+        String token = "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ1c2VybmFtZSI6Im11amFoaWQ3MjkyIiwiZXhwIjoxNjAxNTU2NjU2fQ.VDEbWrHJxC93nebtw58AbFdK6VpIyswPC1eZs42Ir4U";
 
         Api api = Common.getApi();
-        Call<ResponseBody> call = api.basicAuthentication(
-                authHeader
+        Call<ResponseBody> call = api.tokenAuthentication(
+                token
         );
 
         call.enqueue(new Callback<ResponseBody>() {
@@ -157,6 +153,55 @@ public class MainActivity extends AppCompatActivity {
 
             @Override
             public void onFailure(Call<ResponseBody> call, Throwable t) {
+                Log.i(TAG,"Error: " + t.getMessage());
+                Toast.makeText(MainActivity.this,
+                        "Error: " + t.getMessage(),
+                        Toast.LENGTH_LONG).show();
+            }
+        });
+    }
+
+    // 13. Basic Authentication
+    private static User user;
+    private void basicAuthentication() {
+        String username = "munira7292";
+        String password = "password";
+        String base = username + ":" + password;
+
+        String authHeader = "Basic " + Base64.encodeToString(
+                base.getBytes(),
+                Base64.NO_WRAP
+        );
+
+        Api api = Common.getApi();
+        Call<User> call = api.basicAuthentication(
+                authHeader
+        );
+
+        call.enqueue(new Callback<User>() {
+            @Override
+            public void onResponse(Call<User> call, Response<User> response) {
+                if (response.isSuccessful()){
+                    user = response.body();
+                    Log.i(TAG,"Response Is Successful.");
+                    Toast.makeText(MainActivity.this,
+                            "Response Body: " + response.body().getToken(),
+                            Toast.LENGTH_LONG)
+                            .show();
+
+                }else {
+                    APIError error = ErrorUtils.parseError(response);
+
+                    Log.i(TAG,"Response Failed: " + error.getMessage());
+                    Toast.makeText(MainActivity.this,
+                            "Response Failed: " + error.getMessage(),
+                            Toast.LENGTH_LONG)
+                            .show();
+                }
+            }
+
+            @Override
+            public void onFailure(Call<User> call, Throwable t) {
                 Log.i(TAG,"Error: " + t.getMessage());
                 Toast.makeText(MainActivity.this,
                         "Error: " + t.getMessage(),

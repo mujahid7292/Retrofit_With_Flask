@@ -3,6 +3,9 @@ from flask import (jsonify, request, send_from_directory,
             abort, render_template)
 import secrets
 import os
+import jwt
+import datetime
+from functools import wraps
 
 @app.route("/")
 def index():
@@ -242,6 +245,35 @@ def queryParameters():
         return jsonify({"message": "No Query Parameters Received."})
 
 # 13. Basic Authentication
+users = {
+    "mujahid7292": {
+        "id": 1,
+        "public_id": "akdpoaksdkaofjc",
+        "name": "Saifullah Al Mujahid",
+        "email": "mujahid7292@gmail.com",
+        "username": "mujahid7292",
+        "password": "Pass123",
+        "age":32,
+        "topics": [
+            "android",
+            "python"
+        ]
+    },
+    "munira7292": {
+        "id": 2,
+        "public_id": "odpoqfopqwfe",
+        "name": "Marjanam Munira",
+        "email": "munira7292@gmail.com",
+        "username": "munira7292",
+        "password": "password",
+        "age":29,
+        "topics": [
+            "swift",
+            "python"
+        ]
+    }
+}
+
 @app.route("/api/basic-authentication")
 def basicAuth():
     auth = request.authorization
@@ -249,5 +281,77 @@ def basicAuth():
     if auth:
         username = auth.username
         password = auth.password
-        return f"username: {username} | password: {password}"
-    return "Empty Authorization."
+
+        if username not in users:
+            return jsonify({"message": "User Not Found."}), 404
+        else:
+            user = users[username]
+
+        if not password == user["password"]:
+            return jsonify({"message": "Password does not match."}), 404
+        else:
+            token = jwt.encode(
+                payload={
+                    "username": user["username"],
+                    "exp": datetime.datetime.utcnow() + datetime.timedelta(minutes=30)
+                },
+                key=app.config["SECRET_KEY"]
+            )
+            temp_user = {}
+            temp_user["id"] = user["id"]
+            temp_user["public_id"] = user["public_id"]
+            temp_user["name"] = user["name"]
+            temp_user["email"] = user["email"]
+            temp_user["username"] = user["username"]
+            temp_user["age"] = user["age"]
+            temp_user["topics"] = user["topics"]
+            temp_user["token"] = token.decode('UTF-8')
+            
+            return jsonify(temp_user),200
+
+    return jsonify({"message": "Empty Authorization."}), 404
+
+#  14. Token Authentication.
+def token_required(func):
+    
+    @wraps(func)
+    def decorated(*args, **kwargs):
+        token = None
+
+        # We will get the token from the headers, So
+        # we will check first whether token has passed
+        # through header.
+        if 'x-access-token' in request.headers:
+            # That means token has been passed in
+            # headers.
+            token = request.headers['x-access-token']
+
+        if not token:
+            return jsonify({"message": "Token is missing."})
+
+        try:
+            data = jwt.decode(
+                jwt=token,
+                key=app.config["SECRET_KEY"]
+            )
+            # current_user = User.query \
+            #     .filter_by(public_id=data["public_id"]) \
+            #     .first()
+            current_user = users[data['username']]
+        except:
+            return jsonify({"message": "Token is invalid."})
+
+        # Now that we have valid token & got our user from the
+        # database. We will pass the user object to route.
+        return func(current_user, *args, **kwargs)
+
+    return decorated
+
+
+@app.route("/api/token-authentication", methods=['GET', 'POST'])
+@token_required
+def tokenAuthentication(current_user):
+    print(type(current_user))
+    print(f"Authenticated User Email: {current_user['email']}")
+
+    return jsonify({"message": f"Authenticated User Email: {current_user['email']}" })
